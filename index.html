@@ -113,6 +113,25 @@ section{padding:clamp(4.5rem,10vw,8rem) 0;position:relative}
   top:calc(1rem + env(safe-area-inset-top));
   right:calc(1rem + env(safe-area-inset-right));
 }
+  /* ============ КНОПКА МУЗЫКИ ============ */
+#musicBtn{
+  bottom:calc(1rem + env(safe-area-inset-bottom));
+  right:calc(1rem + env(safe-area-inset-right));
+}
+#musicBtn.on{border-color:var(--accent);color:var(--accent)}
+#musicBtn .phl{display:none}
+#musicBtn.on .phl{display:block}
+#musicBtn.on .ph{display:none}
+.music-waves{
+  position:absolute;bottom:calc(100% + 10px);right:8px;
+  display:flex;gap:3px;opacity:0;transition:opacity .3s;pointer-events:none;
+}
+#musicBtn.on .music-waves{opacity:1}
+.music-waves i{width:2px;background:var(--accent);animation:wv 1s ease-in-out infinite}
+.music-waves i:nth-child(1){height:8px}
+.music-waves i:nth-child(2){height:14px;animation-delay:.2s}
+.music-waves i:nth-child(3){height:10px;animation-delay:.4s}
+@keyframes wv{0%,100%{transform:scaleY(.4)}50%{transform:scaleY(1)}}
 
 /* ============ МЕНЮ ============ */
 #menu{
@@ -451,7 +470,14 @@ textarea.f-input{font-family:var(--sans);font-size:1rem;resize:vertical;min-heig
 
 <!-- Кнопка меню -->
 <button class="fab" id="menuBtn" aria-label="Открыть меню"><i class="ph ph-list"></i></button>
-
+  <!-- Кнопка музыки -->
+<button class="fab" id="musicBtn" aria-label="Включить музыку" aria-pressed="false">
+  <i class="ph ph-speaker-high"></i>
+  <i class="phl ph-speaker-slash"></i>
+  <span class="music-waves" aria-hidden="true"><i></i><i></i><i></i></span>
+</button>
+<audio id="bgMusic" src="music.mp3" loop preload="none"></audio>
+  
 <!-- Меню -->
 <div id="menu" aria-hidden="true">
   <nav>
@@ -991,7 +1017,32 @@ function downloadICS(){
   else done();
 }));
 
-/* ============ 8. АНКЕТА: отправка ответов в Telegram ============ */
+/* ============ 7а. МУЗЫКА ============ */
+const musicBtn = $('#musicBtn'), bgMusic = $('#bgMusic');
+
+musicBtn.addEventListener('click', () => {
+  if (bgMusic.paused){
+    bgMusic.volume = 0;
+    bgMusic.play().then(() => {
+      const t0 = performance.now(), DUR = 1500;
+      (function fade(t){
+        const k = Math.min(1, (t - t0) / DUR);
+        bgMusic.volume = k * .55;
+        if (k < 1) requestAnimationFrame(fade);
+      })(t0);
+      musicBtn.classList.add('on');
+      musicBtn.setAttribute('aria-pressed','true');
+      showToast('Музыка включена');
+    }).catch(() => showToast('Не удалось включить музыку'));
+  } else {
+    bgMusic.pause();
+    musicBtn.classList.remove('on');
+    musicBtn.setAttribute('aria-pressed','false');
+    showToast('Музыка выключена');
+  }
+});
+
+  /* ============ 8. АНКЕТА: отправка ответов в Telegram ============ */
 const RSVP_TARGET = {
   telegram: { token: '9137242163:AAHpdw2k_z2VzsFaiUNXZrZr_vu0JRwI0bo', chatId: '1086521894' },
   webhook:  ''
